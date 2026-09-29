@@ -18,7 +18,7 @@ let currentTab = 'url';
         });
         const activeBtn = document.getElementById('tab-' + tab);
         if (activeBtn) {
-          activeBtn.className = 'tab-btn py-2 px-3 rounded-xl text-xs font-medium border border-teal-500 bg-teal-500/20 text-teal-300 transition flex flex-col items-center gap-1';
+          activeBtn.className = 'tab-btn py-2 px-3 rounded-xl text-xs font-medium border border-teal-500 bg-teal-500/20 text-teal-700 transition flex flex-col items-center gap-1';
         }
         document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
         const activePane = document.getElementById('pane-' + tab);
@@ -43,7 +43,9 @@ let currentTab = 'url';
             const em = document.getElementById('vc-email').value.trim();
             const org = document.getElementById('vc-org').value.trim();
             const ti = document.getElementById('vc-title').value.trim();
-            return `BEGIN:VCARD\\nVERSION:3.0\\nN:${ln};${fn}\\nFN:${fn} ${ln}\\nORG:${org}\\nTITLE:${ti}\\nTEL:${ph}\\nEMAIL:${em}\\nEND:VCARD`;
+            const vu = document.getElementById('vc-url').value.trim();
+            const va = document.getElementById('vc-addr').value.trim();
+            return `BEGIN:VCARD\\nVERSION:3.0\\nN:${ln};${fn}\\nFN:${fn} ${ln}\\nORG:${org}\\nTITLE:${ti}\\nTEL:${ph}\\nEMAIL:${em}\\nURL:${vu}\\nADR:;;${va}\\nEND:VCARD`;
           case 'text':
             return document.getElementById('input-text').value.trim() || 'VibeCodedApps QR Studio';
           case 'email':
@@ -54,7 +56,9 @@ let currentTab = 'url';
           case 'crypto':
             const ctype = document.getElementById('crypto-type').value;
             const addr = document.getElementById('crypto-address').value.trim();
-            return addr ? `${ctype}:${addr}` : 'bitcoin:1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
+            if (!addr) return 'bitcoin:1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
+            const amt = document.getElementById('crypto-amount').value.trim();
+            return amt ? `${ctype}:${addr}?amount=${amt}` : `${ctype}:${addr}`;
           default:
             return 'https://github.com/melihkarasu';
         }
@@ -300,7 +304,7 @@ let currentTab = 'url';
             text: document.getElementById('input-text')?.value || '',
             email: {
               to: document.getElementById('mail-to')?.value || '',
-              sub: document.getElementById('mail-sub')?.value || '',
+              sub: document.getElementById('mail-subject')?.value || '',
               body: document.getElementById('mail-body')?.value || ''
             },
             crypto: {
@@ -346,14 +350,14 @@ let currentTab = 'url';
           <div class="p-4 rounded-xl bg-white border border-mistral-hairline hover:border-teal-500/50 transition flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-2">
-                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-500/20 text-teal-300 uppercase">${qr.tab}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-500/20 text-teal-700 uppercase">${qr.tab}</span>
                 <span class="text-[10px] text-mistral-stone">${qr.date}</span>
               </div>
               <h4 class="font-semibold text-sm text-mistral-ink mb-1 truncate">${qr.title}</h4>
               <p class="text-xs text-mistral-slate font-mono truncate mb-4">${qr.data}</p>
             </div>
             <div class="flex items-center justify-between gap-2 pt-3 border-t border-mistral-hairline">
-              <button onclick="restoreSavedQR('${qr.id}')" class="text-xs px-2.5 py-1.5 rounded-lg bg-teal-600/30 hover:bg-teal-600/50 text-teal-300 font-medium transition">
+              <button onclick="restoreSavedQR('${qr.id}')" class="text-xs px-2.5 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 text-teal-700 font-medium transition">
                 Yükle & Düzenle
               </button>
               <button onclick="deleteSavedQR('${qr.id}')" class="text-xs text-mistral-stone hover:text-rose-400 transition">
@@ -394,7 +398,7 @@ let currentTab = 'url';
             document.getElementById('input-text').value = qr.formData.text || qr.data || '';
           } else if (qr.tab === 'email') {
             document.getElementById('mail-to').value = qr.formData.email?.to || '';
-            document.getElementById('mail-sub').value = qr.formData.email?.sub || '';
+            document.getElementById('mail-subject').value = qr.formData.email?.sub || '';
             document.getElementById('mail-body').value = qr.formData.email?.body || '';
           } else if (qr.tab === 'crypto') {
             document.getElementById('crypto-type').value = qr.formData.crypto?.type || 'bitcoin';
@@ -426,7 +430,7 @@ let currentTab = 'url';
               if (p.startsWith('MATMSG:TO:') || p.startsWith('TO:')) {
                 document.getElementById('mail-to').value = p.replace(/^MATMSG:TO:|^TO:/, '');
               } else if (p.startsWith('SUB:')) {
-                document.getElementById('mail-sub').value = p.substring(4);
+                document.getElementById('mail-subject').value = p.substring(4);
               } else if (p.startsWith('BODY:')) {
                 document.getElementById('mail-body').value = p.substring(5);
               }
